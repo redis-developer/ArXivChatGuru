@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  streamlit:
+    container_name: streamlit
+    build:
+      context: ./
+    ports:
+      - "8080:80"
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+  redis:
+    image: redis/redis-stack-server:latest
+    ports:
+      - "6379:6379"
+    env_file:
+      - .env
+    volumes:
+        - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "localhost", "-p", "6379", "ping"]
+      interval: 2s
+      timeout: 1m30s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  redis_data:
