@@ -11,6 +11,8 @@
 
 This example Streamlit app gives you the tools to get up and running with **Redis** as a vector database and **OpenAI** as a LLM provider for embedding creation and text generation. *The combination of the two is where the magic lies.*
 
+![ref arch](app/assets/RedisOpenAI-QnA-Architecture.drawio.png)
+
 ____
 
 
@@ -27,5 +29,7 @@ Run with docker compose:
 $ docker compose up
 ```
 *add `-d` option to daemonize the processes to the background if you wish.*
+
+The first time you run the app -- all documents will be downloaded, processed, and stored in Redis -- may take a few minutes to spin up. From that point forward, the app should be quicker to load.
 
 **Ask the app anything about the 2020 Summer Olympics...**
