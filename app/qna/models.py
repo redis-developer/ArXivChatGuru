@@ -2,6 +2,10 @@ import os
 import openai
 import typing as t
 
+
+
+
+
 from transformers import GPT2TokenizerFast
 from tenacity import (
     retry,
@@ -9,9 +13,7 @@ from tenacity import (
     stop_after_attempt
 )
 
-openai.api_key = os.environ["OPENAI_API_KEY"]
-OPENAI_EMBEDDINGS_ENGINE = os.getenv("OPENAI_EMBEDDINGS_ENGINE_DOC", "text-embedding-ada-002")
-OPENAI_COMPLETIONS_ENGINE = os.getenv("OPENAI_COMPLETIONS_ENGINE", "text-davinci-003")
+
 MAX_SECTION_LEN = 750
 SEPARATOR = "\n* "
 tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")

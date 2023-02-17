@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import typing as t
 
+from langchain.docstore.document import Document
+
 from redis.commands.search.query import Query
 from redis.commands.search.indexDefinition import (
     IndexDefinition,
@@ -42,11 +44,15 @@ def create_index(redis_conn: redis.Redis):
         definition = IndexDefinition(prefix=[PREFIX], index_type=IndexType.HASH)
     )
 
-def process_doc(doc) -> dict:
+def process_doc(doc) -> Document:
     d = doc.__dict__
     if "vector_score" in d:
         d["vector_score"] = 1 - float(d["vector_score"])
-    return d
+    content = d.pop("content")
+    return Document(
+        page_content=content,
+        metadata=d
+    )
 
 def search_redis(
     redis_conn: redis.Redis,
