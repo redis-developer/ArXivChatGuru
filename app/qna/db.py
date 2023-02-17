@@ -46,9 +46,10 @@ def create_index(redis_conn: redis.Redis):
 
 def process_doc(doc) -> Document:
     d = doc.__dict__
+    d["source"] = d["id"]
+    content = d.pop("content")
     if "vector_score" in d:
         d["vector_score"] = 1 - float(d["vector_score"])
-    content = d.pop("content")
     return Document(
         page_content=content,
         metadata=d
@@ -83,27 +84,6 @@ def search_redis(
     params_dict = {"vector": np.array(query_vector, dtype=np.float64).tobytes()}
     # Vector Search in Redis
     results = redis_conn.ft(INDEX_NAME).search(query, params_dict)
-    return [process_doc(doc) for doc in results.docs]
-
-def list_docs(redis_conn: redis.Redis, k: int = NUM_VECTORS) -> pd.DataFrame:
-    """
-    List documents stored in Redis
-
-    Args:
-        k (int, optional): Number of results to fetch. Defaults to VECT_NUMBER.
-
-    Returns:
-        pd.DataFrame: Dataframe of results.
-    """
-    base_query = f'*'
-    return_fields = ['title', 'heading', 'content']
-    query = (
-        Query(base_query)
-        .paging(0, k)
-        .return_fields(*return_fields)
-        .dialect(2)
-    )
-    results = redis_conn.ft(INDEX_NAME).search(query)
     return [process_doc(doc) for doc in results.docs]
 
 def index_documents(redis_conn: redis.Redis, embeddings_lookup: dict, documents: list):

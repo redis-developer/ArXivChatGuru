@@ -15,9 +15,16 @@ This example Streamlit app gives you the tools to get up and running with **Redi
 
 ____
 
+## Create dev env (*optional*)
+Use the provided conda env for development:
+```bash
+conda create env -f environment.yml
+```
 
 ## Run the App
+The example QnA application uses a dataset from wikipedia of articles about the 2020 summer olympics. The **first time you run the app** -- all docs will be downloaded, processed, and stored in Redis. This will take a few minutes to spin up initially. From that point forward, the app should be quicker to load.
 
+### Use Docker Compose
 Create your env file:
 ```bash
 $ cp .env.template .env
@@ -35,6 +42,5 @@ Navigate to:
 http://localhost:8080/
 ```
 
-The **first time you run the app** -- all documents will be downloaded, processed, and stored in Redis. This will take a few minutes to spin up initially. From that point forward, the app should be quicker to load.
 
-**Ask the app anything about the 2020 Summer Olympics...**
+**NOW: Ask the app anything about the 2020 Summer Olympics!**

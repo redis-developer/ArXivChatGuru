@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 try:
-
     default_question = ""
     default_answer = ""
 
@@ -37,21 +36,17 @@ try:
         if question != st.session_state['question']:
             st.session_state['question'] = question
             with st.spinner("OpenAI and Redis are working to answer your question..."):
-                st.session_state['response'] = answer_question_with_context(
+                st.session_state['context'], st.session_state['response'] = answer_question_with_context(
                     question,
-                    tokens_response=st.tokens_response,
-                    temperature=st.temperature
+                    # tokens_response=st.tokens_response,
+                    # temperature=st.temperature
                 )
             st.write("### Response")
-            # st.write(f"Q: {question}")
             st.write(f"{st.session_state['response']}")
-            # with st.expander("Show Question and Answer Context"):
-            #     st.text(st.session_state['prompt'])
-        # else:
-        #     st.write(f"Q: {st.session_state['question']}")
-        #     st.write(f"{st.session_state['response']['choices'][0]['text']}")
-        #     with st.expander("Question and Answer Context"):
-        #         st.text(st.session_state['prompt'].encode().decode())
+            with st.expander("Show Q&A Context Documents"):
+                if st.session_state['context']:
+                    docs = "\n".join([doc.page_content for doc in st.session_state['context']])
+                    st.text(docs)
 
     st.markdown("____")
     st.markdown("")
