@@ -9,7 +9,7 @@ redis_conn = db.init()
 qa_chain = llm.make_qa_chain()
 
 
-def search_semantic_redis(search_query: str, n: int) -> t.List[Document]:
+def search_semantic_redis(search_query: str, n: int) -> t.List[llm.Document]:
     """
     Search Redis using computed embeddings from OpenAI.
 
@@ -29,7 +29,7 @@ def search_semantic_redis(search_query: str, n: int) -> t.List[Document]:
     )
 
 
-def answer_question_with_context(question: str) -> t.Tuple(t.List[Document], str):
+def answer_question_with_context(question: str):
     """
     Answer the question.
 
