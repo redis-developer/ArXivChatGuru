@@ -1,7 +1,9 @@
-redis==4.5.1
+redis>=4.5.1
 streamlit==1.18.0
 python-dotenv==0.21.0
-langchain==0.0.115
+langchain==0.0.150
 tenacity
 pandas
 numpy
+openai
+tiktoken

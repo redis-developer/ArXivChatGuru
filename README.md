@@ -18,7 +18,7 @@ ____
 ## Create dev env (*optional*)
 Use the provided conda env for development:
 ```bash
-conda create env -f environment.yml
+conda env create -f environment.yml
 ```
 
 ## Run the App

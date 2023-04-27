@@ -1,47 +1,69 @@
 import os
-import pandas as pd
 
 from langchain.vectorstores.redis import Redis
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.llms import OpenAI
-from langchain.prompts import PromptTemplate
-from langchain.chains.qa_chain import load_qa_chain
 
 
 # Redis Env Vars
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = os.getenv("REDIS_PORT", 6379)
-REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
-
-# Init OpenAI Embeddings and LLM
-openai_embeddings = OpenAIEmbeddings()
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "")
+REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
 
 
-def create_vector_db() -> Redis:
-    docs = pd.read_csv("https://cdn.openai.com/API/examples/data/olympics_sections_text.csv").to_dict("records")
+def create_vectorstore() -> Redis:
+    """Create the Redis vectorstore."""
+    import pandas as pd
+
+    from langchain.embeddings import OpenAIEmbeddings
+
+    # Load and prepare wikipedia documents
+    docs = pd.read_csv(
+        "https://cdn.openai.com/API/examples/data/olympics_sections_text.csv").to_dict("records")
     texts = [doc["content"] for doc in docs]
-    metadatas = {
-        i: {
+    metadatas = [
+        {
             "title": doc["title"],
             "heading": doc["heading"],
             "tokens": doc["tokens"]
-        } for i, doc in enumerate(docs)
-    }
+        } for doc in docs
+    ]
+
+    # Init OpenAI Embeddings and LLM
+    oai_embeddings = OpenAIEmbeddings()
+
     # Load Redis with documents
-    vector_db = Redis.from_texts(
+    vectorstore = Redis.from_texts(
         texts=texts,
         metadatas=metadatas,
-        embeddings=openai_embeddings,
+        embedding=oai_embeddings,
         index_name="wiki",
-        host=REDIS_HOST,
-        port=REDIS_PORT,
-        password=REDIS_PASSWORD
+        redis_url=REDIS_URL
     )
-    return vector_db
+    return vectorstore
 
-# Make QA
-def make_qa(chain_type: str = "stuff"):
-    # Prompt Template
+
+def make_qna_chain():
+    """Create the QA chain."""
+    import langchain
+
+    from langchain.cache import RedisCache
+    from langchain.prompts import PromptTemplate
+    from langchain.llms import OpenAI
+    from langchain.memory import ConversationBufferMemory
+    from langchain.memory import RedisChatMessageHistory
+    from langchain.chains import RetrievalQA
+
+    # Persist chat history in Redis
+    #message_history = RedisChatMessageHistory(url=REDIS_URL, ttl=600, session_id='my-session')
+
+    # Set up memory model for the LLM
+    # memory = ConversationBufferMemory(
+    #     #chat_memory=message_history,
+    #     memory_key="chat_history",
+    #     return_messages=True
+    # )
+
+    #Define our prompt
     prompt_template = """Use the following pieces of context to answer the question at the end. If you don't know the answer, say that you don't know, don't try to make up an answer.
 
     This should be in the following format:
@@ -63,16 +85,16 @@ def make_qa(chain_type: str = "stuff"):
     )
 
     # Create Redis Vector DB
-    redis = create_vector_db()
+    redis = create_vectorstore()
 
-    # Create QA Chain
-    qa_chain = load_qa_chain(OpenAI(temperature=0), chain_type="stuff", prompt=prompt)
+    chain_type_kwargs = {"prompt": prompt}
 
-    # Create QA
-    qa = VectorDBQA(
-        combine_documents_chain=qa_chain,
-        vectorstore=redis,
-        return_source_documents=True
+    chain = RetrievalQA.from_chain_type(
+        llm=OpenAI(),
+        chain_type="stuff",
+        retriever=redis.as_retriever(),
+        return_source_documents=True,
+        chain_type_kwargs=chain_type_kwargs
     )
 
-    return qa
+    return chain
