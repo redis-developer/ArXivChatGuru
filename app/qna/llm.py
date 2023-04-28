@@ -44,13 +44,10 @@ def create_vectorstore() -> Redis:
 
 def make_qna_chain():
     """Create the QA chain."""
-    import langchain
-
-    from langchain.cache import RedisCache
     from langchain.prompts import PromptTemplate
     from langchain.llms import OpenAI
-    from langchain.memory import ConversationBufferMemory
-    from langchain.memory import RedisChatMessageHistory
+    # from langchain.memory import ConversationBufferMemory
+    # from langchain.memory import RedisChatMessageHistory
     from langchain.chains import RetrievalQA
 
     # Persist chat history in Redis
