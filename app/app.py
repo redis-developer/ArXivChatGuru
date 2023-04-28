@@ -1,21 +1,32 @@
 import os
 import streamlit as st
+import langchain
 
-from urllib.error import URLError
-from qna import answer_question_with_context
 from dotenv import load_dotenv
 load_dotenv()
 
+from langchain.cache import RedisCache
+from urllib.error import URLError
+from qna import make_qna_chain
+
+
+@st.cache_resource
+def startup_qna_backend():
+    return make_qna_chain()
+
+
 try:
 
-    default_prompt = ""
+    qna_chain = startup_qna_backend()
+    client = qna_chain.retriever.vectorstore.client
+    langchain.llm_cache = RedisCache(client)
+
+
     default_question = ""
     default_answer = ""
 
     if 'question' not in st.session_state:
         st.session_state['question'] = default_question
-    if 'prompt' not in st.session_state:
-        st.session_state['prompt'] = default_prompt
     if 'response' not in st.session_state:
         st.session_state['response'] = {
             "choices" :[{
@@ -40,21 +51,16 @@ try:
         if question != st.session_state['question']:
             st.session_state['question'] = question
             with st.spinner("OpenAI and Redis are working to answer your question..."):
-                st.session_state['prompt'], st.session_state['response'] = answer_question_with_context(
-                    question,
-                    tokens_response=st.tokens_response,
-                    temperature=st.temperature
-                )
+                result = qna_chain({"query": question})
+                print(result, flush=True)
+                # return result['source_documents'], result['result']
+                st.session_state['context'], st.session_state['response'] = result['source_documents'], result['result']
             st.write("### Response")
-            st.write(f"Q: {question}")
-            st.write(f"A: {st.session_state['response']['choices'][0]['text']}")
-            with st.expander("Show Question and Answer Context"):
-                st.text(st.session_state['prompt'])
-        else:
-            st.write(f"Q: {st.session_state['question']}")
-            st.write(f"{st.session_state['response']['choices'][0]['text']}")
-            with st.expander("Question and Answer Context"):
-                st.text(st.session_state['prompt'].encode().decode())
+            st.write(f"{st.session_state['response']}")
+            with st.expander("Show Q&A Context Documents"):
+                if st.session_state['context']:
+                    docs = "\n".join([doc.page_content for doc in st.session_state['context']])
+                    st.text(docs)
 
     st.markdown("____")
     st.markdown("")
