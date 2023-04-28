@@ -9,12 +9,27 @@ REDIS_PORT = os.getenv("REDIS_PORT", 6379)
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "")
 REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
 
+INDEX_NAME = "wiki"
+
 
 def create_vectorstore() -> Redis:
     """Create the Redis vectorstore."""
     import pandas as pd
 
     from langchain.embeddings import OpenAIEmbeddings
+
+     # Init OpenAI Embeddings
+    oai_embeddings = OpenAIEmbeddings()
+
+    try:
+        vectorstore = Redis.from_existing_index(
+            embedding=oai_embeddings,
+            index_name=INDEX_NAME,
+            redis_url=REDIS_URL
+        )
+        return vectorstore
+    except:
+        pass
 
     # Load and prepare wikipedia documents
     docs = pd.read_csv(
@@ -27,9 +42,6 @@ def create_vectorstore() -> Redis:
             "tokens": doc["tokens"]
         } for doc in docs
     ]
-
-    # Init OpenAI Embeddings and LLM
-    oai_embeddings = OpenAIEmbeddings()
 
     # Load Redis with documents
     vectorstore = Redis.from_texts(
