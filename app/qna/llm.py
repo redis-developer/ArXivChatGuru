@@ -11,19 +11,27 @@ REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
 
 INDEX_NAME = "wiki"
 
+OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE", "")
+OPENAI_COMPLETIONS_ENGINE = os.getenv("OPENAI_COMPLETIONS_ENGINE", "text-davinci-003")
 
 def create_vectorstore() -> Redis:
     """Create the Redis vectorstore."""
     import pandas as pd
 
-    from langchain.embeddings import OpenAIEmbeddings
 
-     # Init OpenAI Embeddings
-    oai_embeddings = OpenAIEmbeddings()
+    if OPENAI_API_TYPE=="azure":
+        #currently Azure OpenAI embeddings require request for service limit increase to be useful
+        #using build-in HuggingFace instead
+        from langchain.embeddings import HuggingFaceEmbeddings
+        embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    else:
+        from langchain.embeddings import OpenAIEmbeddings
+        # Init OpenAI Embeddings
+        embeddings = OpenAIEmbeddings()
 
     try:
         vectorstore = Redis.from_existing_index(
-            embedding=oai_embeddings,
+            embedding=embeddings,
             index_name=INDEX_NAME,
             redis_url=REDIS_URL
         )
@@ -47,7 +55,7 @@ def create_vectorstore() -> Redis:
     vectorstore = Redis.from_texts(
         texts=texts,
         metadatas=metadatas,
-        embedding=oai_embeddings,
+        embedding=embeddings,
         index_name="wiki",
         redis_url=REDIS_URL
     )
@@ -98,12 +106,24 @@ def make_qna_chain():
 
     chain_type_kwargs = {"prompt": prompt}
 
-    chain = RetrievalQA.from_chain_type(
-        llm=OpenAI(),
-        chain_type="stuff",
-        retriever=redis.as_retriever(),
-        return_source_documents=True,
-        chain_type_kwargs=chain_type_kwargs
-    )
+    if OPENAI_API_TYPE=="azure":
+        #Azure OpenAI requires engine parameter
+        chain = RetrievalQA.from_chain_type(
+            llm=OpenAI(engine=OPENAI_COMPLETIONS_ENGINE),
+            chain_type="stuff",
+            retriever=redis.as_retriever(),
+            return_source_documents=True,
+            chain_type_kwargs=chain_type_kwargs
+        )
+    else:
+        chain = RetrievalQA.from_chain_type(
+            llm=OpenAI(),
+            chain_type="stuff",
+            retriever=redis.as_retriever(),
+            return_source_documents=True,
+            chain_type_kwargs=chain_type_kwargs
+        )
+
+
 
     return chain

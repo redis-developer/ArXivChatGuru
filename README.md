@@ -44,5 +44,11 @@ Navigate to:
 http://localhost:8080/
 ```
 
+### Using Azure OpenAI
+
+If using Azure OpenAI - use `.env.azure.template` instead. Besides `OPENAI_API_KEY`, make sure to fill in your own value for `OPENAI_API_BASE` and create Model Deployment for the engines such as `text-davinci-003`.
+
+Currently (May 2023) Embedding Generation on Azure OpenAI is limited in batch size and request frequency, that makes it unusable for the purposesof this demo. In a meantime if `OPENAI_API_TYPE=azure` - this demo would load and use HuggingFace `all-MiniLM-L6-v2` for embeddings. You might also request service limit increase for your Azure subscription to address it. 
+
 
 **NOW: Ask the app anything about the 2020 Summer Olympics!**
