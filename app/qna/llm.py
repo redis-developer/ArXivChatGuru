@@ -14,11 +14,7 @@ INDEX_NAME = "wiki"
 OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE", "")
 OPENAI_COMPLETIONS_ENGINE = os.getenv("OPENAI_COMPLETIONS_ENGINE", "text-davinci-003")
 
-def create_vectorstore() -> Redis:
-    """Create the Redis vectorstore."""
-    import pandas as pd
-
-
+def get_embeddings():
     if OPENAI_API_TYPE=="azure":
         #currently Azure OpenAI embeddings require request for service limit increase to be useful
         #using build-in HuggingFace instead
@@ -28,6 +24,13 @@ def create_vectorstore() -> Redis:
         from langchain.embeddings import OpenAIEmbeddings
         # Init OpenAI Embeddings
         embeddings = OpenAIEmbeddings()
+    return embeddings 
+
+def create_vectorstore() -> Redis:
+    """Create the Redis vectorstore."""
+    import pandas as pd
+
+    embeddings=get_embeddings()
 
     try:
         vectorstore = Redis.from_existing_index(
