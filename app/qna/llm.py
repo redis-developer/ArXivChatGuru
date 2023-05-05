@@ -68,7 +68,7 @@ def create_vectorstore() -> Redis:
 def make_qna_chain():
     """Create the QA chain."""
     from langchain.prompts import PromptTemplate
-    from langchain.llms import OpenAI
+    
     # from langchain.memory import ConversationBufferMemory
     # from langchain.memory import RedisChatMessageHistory
     from langchain.chains import RetrievalQA
@@ -106,27 +106,23 @@ def make_qna_chain():
 
     # Create Redis Vector DB
     redis = create_vectorstore()
-
+    #llm=get_llm()
     chain_type_kwargs = {"prompt": prompt}
 
-    if OPENAI_API_TYPE=="azure":
-        #Azure OpenAI requires engine parameter
-        chain = RetrievalQA.from_chain_type(
-            llm=OpenAI(engine=OPENAI_COMPLETIONS_ENGINE),
+    chain = RetrievalQA.from_chain_type(
+            llm=get_llm(),
             chain_type="stuff",
             retriever=redis.as_retriever(),
             return_source_documents=True,
             chain_type_kwargs=chain_type_kwargs
         )
-    else:
-        chain = RetrievalQA.from_chain_type(
-            llm=OpenAI(),
-            chain_type="stuff",
-            retriever=redis.as_retriever(),
-            return_source_documents=True,
-            chain_type_kwargs=chain_type_kwargs
-        )
-
-
-
     return chain
+
+def get_llm():
+    if OPENAI_API_TYPE=="azure":
+        from langchain.llms import AzureOpenAI
+        llm=AzureOpenAI(deployment_name=OPENAI_COMPLETIONS_ENGINE)
+    else:
+        from langchain.llms import OpenAI
+        llm=OpenAI()
+    return llm
