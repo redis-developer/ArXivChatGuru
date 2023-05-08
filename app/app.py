@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from urllib.error import URLError
-from qna.llm import make_qna_chain, cache
+from qna.llm import make_qna_chain, get_cache
 
 
 @st.cache_resource
@@ -15,7 +15,7 @@ def startup_qna_backend():
 
 @st.cache_resource
 def fetch_llm_cache():
-    return cache()
+    return get_cache()
 
 
 try:
@@ -52,7 +52,7 @@ try:
             st.session_state['question'] = question
             with st.spinner("OpenAI and Redis are working to answer your question..."):
                 result = qna_chain({"query": question})
-                print(result, flush=True)
+                # print(result, flush=True)
                 # return result['source_documents'], result['result']
                 st.session_state['context'], st.session_state['response'] = result['source_documents'], result['result']
             st.write("### Response")

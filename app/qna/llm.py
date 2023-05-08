@@ -96,7 +96,7 @@ def create_vectorstore() -> Redis:
     # Load Redis with documents
     documents = get_documents()
     vectorstore = Redis.from_documents(
-        documents=documents
+        documents=documents,
         embedding=embeddings,
         index_name="wiki",
         redis_url=REDIS_URL
