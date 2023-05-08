@@ -11,19 +11,30 @@ REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
 
 INDEX_NAME = "wiki"
 
+OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE", "")
+OPENAI_COMPLETIONS_ENGINE = os.getenv("OPENAI_COMPLETIONS_ENGINE", "text-davinci-003")
+
+def get_embeddings():
+    if OPENAI_API_TYPE=="azure":
+        #currently Azure OpenAI embeddings require request for service limit increase to be useful
+        #using build-in HuggingFace instead
+        from langchain.embeddings import HuggingFaceEmbeddings
+        embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    else:
+        from langchain.embeddings import OpenAIEmbeddings
+        # Init OpenAI Embeddings
+        embeddings = OpenAIEmbeddings()
+    return embeddings 
 
 def create_vectorstore() -> Redis:
     """Create the Redis vectorstore."""
     import pandas as pd
 
-    from langchain.embeddings import OpenAIEmbeddings
-
-     # Init OpenAI Embeddings
-    oai_embeddings = OpenAIEmbeddings()
+    embeddings=get_embeddings()
 
     try:
         vectorstore = Redis.from_existing_index(
-            embedding=oai_embeddings,
+            embedding=embeddings,
             index_name=INDEX_NAME,
             redis_url=REDIS_URL
         )
@@ -47,7 +58,7 @@ def create_vectorstore() -> Redis:
     vectorstore = Redis.from_texts(
         texts=texts,
         metadatas=metadatas,
-        embedding=oai_embeddings,
+        embedding=embeddings,
         index_name="wiki",
         redis_url=REDIS_URL
     )
@@ -57,7 +68,7 @@ def create_vectorstore() -> Redis:
 def make_qna_chain():
     """Create the QA chain."""
     from langchain.prompts import PromptTemplate
-    from langchain.llms import OpenAI
+    
     # from langchain.memory import ConversationBufferMemory
     # from langchain.memory import RedisChatMessageHistory
     from langchain.chains import RetrievalQA
@@ -95,15 +106,23 @@ def make_qna_chain():
 
     # Create Redis Vector DB
     redis = create_vectorstore()
-
+    #llm=get_llm()
     chain_type_kwargs = {"prompt": prompt}
 
     chain = RetrievalQA.from_chain_type(
-        llm=OpenAI(),
-        chain_type="stuff",
-        retriever=redis.as_retriever(),
-        return_source_documents=True,
-        chain_type_kwargs=chain_type_kwargs
-    )
-
+            llm=get_llm(),
+            chain_type="stuff",
+            retriever=redis.as_retriever(),
+            return_source_documents=True,
+            chain_type_kwargs=chain_type_kwargs
+        )
     return chain
+
+def get_llm():
+    if OPENAI_API_TYPE=="azure":
+        from langchain.llms import AzureOpenAI
+        llm=AzureOpenAI(deployment_name=OPENAI_COMPLETIONS_ENGINE)
+    else:
+        from langchain.llms import OpenAI
+        llm=OpenAI()
+    return llm
