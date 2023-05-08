@@ -5,22 +5,22 @@ import langchain
 from dotenv import load_dotenv
 load_dotenv()
 
-from langchain.cache import RedisCache
 from urllib.error import URLError
-from qna import make_qna_chain
+from qna.llm import make_qna_chain, cache
 
 
 @st.cache_resource
 def startup_qna_backend():
     return make_qna_chain()
 
+@st.cache_resource
+def fetch_llm_cache():
+    return cache()
+
 
 try:
-
     qna_chain = startup_qna_backend()
-    client = qna_chain.retriever.vectorstore.client
-    langchain.llm_cache = RedisCache(client)
-
+    langchain.llm_cache = fetch_llm_cache()
 
     default_question = ""
     default_answer = ""
