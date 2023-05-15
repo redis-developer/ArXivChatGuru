@@ -1,7 +1,7 @@
 redis>=4.5.4
 streamlit==1.18.0
 python-dotenv==0.21.0
-langchain==0.0.150
+langchain==0.0.153
 tenacity
 pandas
 numpy
