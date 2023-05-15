@@ -39,10 +39,10 @@ try:
     col1, col2 = st.columns([4,2])
     with col1:
         st.write("# Q&A Application")
-    with col2:
-        with st.expander("Settings"):
-            st.tokens_response = st.slider("Tokens response length", 100, 500, 400)
-            st.temperature = st.slider("Temperature", 0.0, 1.0, 0.1)
+    # with col2:
+    #     with st.expander("Settings"):
+    #         st.tokens_response = st.slider("Tokens response length", 100, 500, 400)
+    #         st.temperature = st.slider("Temperature", 0.0, 1.0, 0.1)
 
 
     question = st.text_input("*Ask thoughtful questions about the **2020 Summer Olympics***", default_question)
@@ -52,8 +52,6 @@ try:
             st.session_state['question'] = question
             with st.spinner("OpenAI and Redis are working to answer your question..."):
                 result = qna_chain({"query": question})
-                # print(result, flush=True)
-                # return result['source_documents'], result['result']
                 st.session_state['context'], st.session_state['response'] = result['source_documents'], result['result']
             st.write("### Response")
             st.write(f"{st.session_state['response']}")
