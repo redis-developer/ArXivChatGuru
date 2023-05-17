@@ -28,27 +28,30 @@ def get_llm() -> LLM:
 
 
 def get_embeddings() -> Embeddings:
-    if OPENAI_API_TYPE=="azure":
-        #currently Azure OpenAI embeddings require request for service limit increase to be useful
-        #using build-in HuggingFace instead
-        from langchain.embeddings import HuggingFaceEmbeddings
-        embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    else:
-        from langchain.embeddings import OpenAIEmbeddings
-        # Init OpenAI Embeddings
-        embeddings = OpenAIEmbeddings()
+    # TODO - work around rate limits for embedding providers
+    # if OPENAI_API_TYPE=="azure":
+    #     #currently Azure OpenAI embeddings require request for service limit increase to be useful
+    #     #using build-in HuggingFace instead
+    #     from langchain.embeddings import HuggingFaceEmbeddings
+    #     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    # else:
+    #     from langchain.embeddings import OpenAIEmbeddings
+    #     # Init OpenAI Embeddings
+    #     embeddings = OpenAIEmbeddings()
+    from langchain.embeddings import HuggingFaceEmbeddings
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     return embeddings
 
 
 def get_cache():
     # construct cache implementation based on env var
     if CACHE_TYPE == "semantic":
-        from langchain.embeddings import OpenAIEmbeddings
         from langchain.cache import RedisSemanticCache
         print("Using semantic cache")
+        embeddings = get_embeddings()
         return RedisSemanticCache(
             redis_url=REDIS_URL,
-            embedding=OpenAIEmbeddings(),
+            embedding=embeddings,
             score_threshold=0.2
         )
     elif CACHE_TYPE == "standard":
