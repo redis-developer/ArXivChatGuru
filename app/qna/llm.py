@@ -28,6 +28,7 @@ def get_llm() -> LLM:
 
 
 def get_embeddings() -> Embeddings:
+    # TODO - work around rate limits for embedding providers
     if OPENAI_API_TYPE=="azure":
         #currently Azure OpenAI embeddings require request for service limit increase to be useful
         #using build-in HuggingFace instead
@@ -43,12 +44,12 @@ def get_embeddings() -> Embeddings:
 def get_cache():
     # construct cache implementation based on env var
     if CACHE_TYPE == "semantic":
-        from langchain.embeddings import OpenAIEmbeddings
         from langchain.cache import RedisSemanticCache
         print("Using semantic cache")
+        embeddings = get_embeddings()
         return RedisSemanticCache(
             redis_url=REDIS_URL,
-            embedding=OpenAIEmbeddings(),
+            embedding=embeddings,
             score_threshold=0.2
         )
     elif CACHE_TYPE == "standard":
@@ -93,7 +94,6 @@ def create_vectorstore() -> Redis:
     except:
         pass
 
-
     # Load Redis with documents
     documents = get_documents()
     vectorstore = Redis.from_documents(
@@ -109,20 +109,6 @@ def make_qna_chain():
     """Create the QA chain."""
     from langchain.prompts import PromptTemplate
     from langchain.chains import RetrievalQA
-
-    # TODO - get external memory working
-    # from langchain.memory import ConversationBufferMemory
-    # from langchain.memory import RedisChatMessageHistory
-
-    # Persist chat history in Redis
-    #message_history = RedisChatMessageHistory(url=REDIS_URL, ttl=600, session_id='my-session')
-
-    # Set up memory model for the LLM
-    # memory = ConversationBufferMemory(
-    #     #chat_memory=message_history,
-    #     memory_key="chat_history",
-    #     return_messages=True
-    # )
 
     # Define our prompt
     prompt_template = """Use the following pieces of context to answer the question at the end. If you don't know the answer, say that you don't know, don't try to make up an answer.
@@ -140,6 +126,7 @@ def make_qna_chain():
     ---------
     Question: {question}
     Answer:"""
+
     prompt = PromptTemplate(
         template=prompt_template,
         input_variables=["context", "question"]
@@ -150,10 +137,10 @@ def make_qna_chain():
 
     # Create retreival QnA Chain
     chain = RetrievalQA.from_chain_type(
-            llm=get_llm(),
-            chain_type="stuff",
-            retriever=redis.as_retriever(),
-            return_source_documents=True,
-            chain_type_kwargs={"prompt": prompt}
-        )
+        llm=get_llm(),
+        chain_type="stuff",
+        retriever=redis.as_retriever(),
+        return_source_documents=True,
+        chain_type_kwargs={"prompt": prompt}
+    )
     return chain
