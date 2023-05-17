@@ -4,6 +4,8 @@ services:
     container_name: streamlit
     build:
       context: ./
+    volumes:
+      - ./app:/app
     ports:
       - "8080:80"
     env_file:
