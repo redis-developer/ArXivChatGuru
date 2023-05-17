@@ -33,6 +33,11 @@ The example QnA application uses a dataset from wikipedia of articles about the 
     ```
     *add `-d` option to daemonize the processes to the background if you wish.*
 
+    Issues with dependencies? Try force-building with no-cache:
+    ```
+    $ docker compose build --no-cache
+    ```
+
 3. Navigate to:
     ```
     http://localhost:8080/
