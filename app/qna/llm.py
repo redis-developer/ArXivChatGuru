@@ -15,13 +15,13 @@ if TYPE_CHECKING:
     from langchain.vectorstores.redis import Redis as RedisVDB
 
 
-def get_llm() -> LLM:
+def get_llm(max_tokens=100) -> LLM:
     if OPENAI_API_TYPE=="azure":
         from langchain.llms import AzureOpenAI
         llm=AzureOpenAI(deployment_name=OPENAI_COMPLETIONS_ENGINE)
     else:
         from langchain.llms import OpenAI
-        llm=OpenAI()
+        llm=OpenAI(model_name=OPENAI_COMPLETIONS_ENGINE, max_tokens=max_tokens)
     return llm
 
 
@@ -43,7 +43,11 @@ def get_embeddings() -> Embeddings:
 def make_qna_chain(vector_db: "RedisVDB", prompt: str = "", **kwargs):
     """Create the QA chain."""
 
-    llm = get_llm()
+    max_tokens = 100
+    if "max_tokens" in kwargs:
+        max_tokens = kwargs.pop("max_tokens")
+
+    llm = get_llm(max_tokens=max_tokens)
     # TODO be able to edit search kwargs
 
     # Create retreival QnA Chain
@@ -52,6 +56,7 @@ def make_qna_chain(vector_db: "RedisVDB", prompt: str = "", **kwargs):
         chain_type="stuff",
         retriever=vector_db.as_retriever(search_kwargs=kwargs),
         return_source_documents=True,
-        chain_type_kwargs={"prompt": prompt}
+        chain_type_kwargs={"prompt": prompt},
+        verbose=True
     )
     return chain

@@ -4,7 +4,7 @@ import os
 CACHE_TYPE = os.getenv("CACHE_TYPE")
 OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE", "openai")
 OPENAI_COMPLETIONS_ENGINE = os.getenv("OPENAI_COMPLETIONS_ENGINE", "text-davinci-003")
-INDEX_NAME = "wiki"
+INDEX_NAME = "arxiv"
 HUGGINGFACE_MODEL_NAME = os.getenv("HF_MODEL", "all-MiniLM-L6-v2")
 
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
