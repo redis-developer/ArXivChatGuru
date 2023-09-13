@@ -1,9 +1,9 @@
-redis>=4.5.4
+redis
 streamlit==1.18.0
-altair==4
-python-dotenv==0.21.0
-langchain==0.0.153
-sentence-transformers==2.2.2
+altair
+python-dotenv
+langchain
+sentence-transformers
 tenacity
 pandas
 numpy

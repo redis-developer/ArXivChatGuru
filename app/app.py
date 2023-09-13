@@ -6,21 +6,34 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from urllib.error import URLError
-from qna.llm import make_qna_chain, get_cache
+from qna.llm import make_qna_chain
+from qna.db import get_cache, get_vectorstore
+from qna.prompt import basic_prompt
+from qna.data import get_olympics_docs
 
 
 @st.cache_resource
-def startup_qna_backend():
-    return make_qna_chain()
+def vector_db(_documents):
+    return get_vectorstore(_documents)
 
 @st.cache_resource
 def fetch_llm_cache():
     return get_cache()
 
+@st.cache_resource
+def qna_chain(_vector_db, prompt, **kwargs):
+    return make_qna_chain(_vector_db, prompt, **kwargs)
+
+@st.cache_resource
+def get_documents():
+    return get_olympics_docs()
 
 try:
-    qna_chain = startup_qna_backend()
+    docs = get_documents()
+    vdb = vector_db(docs)
     langchain.llm_cache = fetch_llm_cache()
+    prompt = basic_prompt()
+    qna_chain = qna_chain(vdb, prompt=prompt)
 
     default_question = ""
     default_answer = ""
