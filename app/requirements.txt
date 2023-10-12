@@ -1,11 +1,13 @@
 redis
-streamlit==1.18.0
-altair
+streamlit
 python-dotenv
-langchain
+langchain==0.0.312
 sentence-transformers
 tenacity
 pandas
 numpy
 openai
 tiktoken
+arxiv
+pymupdf
+redisvl
