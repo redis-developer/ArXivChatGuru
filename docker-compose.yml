@@ -7,14 +7,14 @@ services:
     volumes:
       - ./app:/app
     ports:
-      - "8080:80"
+      - "8501:8501"
     env_file:
       - .env
     depends_on:
       redis:
         condition: service_healthy
   redis:
-    image: redis/redis-stack-server:latest
+    image: redis/redis-stack:latest
     ports:
       - "6379:6379"
     env_file:

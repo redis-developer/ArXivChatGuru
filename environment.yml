@@ -1,6 +1,0 @@
-name: qna
-dependencies:
-  - python=3.9
-  - pip
-  - pip:
-    - -r ./app/requirements.txt
