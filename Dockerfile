@@ -8,6 +8,4 @@ COPY ./app/requirements.txt .
 
 RUN pip install -r requirements.txt
 
-EXPOSE 80
-
-CMD ["streamlit", "run", "app.py", "--server.port", "80", "--server.enableXsrfProtection", "false"]
+CMD ["streamlit", "run", "App.py", "--server.fileWatcherType", "none", "--browser.gatherUsageStats", "false","--server.enableXsrfProtection", "false", "--server.address", "0.0.0.0"]
