@@ -1,19 +1,6 @@
 
 <div align="center">
-
-<div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-
-<!-- Shape & Base -->
-<div style="width: 200px; height: 200px; border-radius: 50%; border: 2px solid #333; margin: 0 auto; position: relative;">
-
-<!-- Main Element: Chat Bubble with Large Wizard Emoji -->
-<div style="width: 60%; height: 60%; background-color: #4a90e2; border-radius: 20px; position: absolute; top: 20%; left: 20%; display: flex; justify-content: center; align-items: center;">
-    <span style="font-size: 80px;">🧙‍♂️</span>
-</div>
-</div>
-<!-- Typography -->
-<h3 style="font-weight: normal; color: #777;">Arxiv ChatGuru</h3>
-</div>
+    <a href="https://github.com/CrayLabs/SmartSim"><img src="./app/assets/arxivguru_crop.png" width="30%"><img></a>
 </div>
 
 # ArXiv ChatGuru: Exploring Conversational Scientific Literature 📖

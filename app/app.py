@@ -98,11 +98,15 @@ try:
         st.button("Clear Cache", key="clear_cache", on_click=clear_cache)
         st.button("New Conversation", key="reset", on_click=reset_app)
 
-    st.write("## Arxiv Document Chat Application")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.title("Arxiv ChatGuru")
+        st.write("**Put in a topic area and a question within that area to get an answer!**")
+        topic = st.text_input("Topic Area", key="arxiv_topic")
+        papers = st.number_input("Number of Papers", key="num_papers", value=10, min_value=1, max_value=50, step=2)
+    with col2:
+        st.image("./assets/arxivguru_crop.png")
 
-    st.write("**Put in a topic area and a question within that area to get an answer!**")
-    topic = st.text_input("Topic Area", key="arxiv_topic")
-    papers = st.number_input("Number of Papers", key="num_papers", value=10, min_value=1, max_value=50, step=2)
 
 
     if st.button("Chat!"):
@@ -138,7 +142,7 @@ try:
         with st.chat_message("user"):
             st.markdown(query)
 
-        with st.chat_message("assistant"):
+        with st.chat_message("assistant", avatar="./assets/arxivguru_crop.png"):
             message_placeholder = st.empty()
             st.session_state['context'], st.session_state['response'] = [], ""
             chain = st.session_state['chain']
