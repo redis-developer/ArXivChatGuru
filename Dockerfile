@@ -9,4 +9,4 @@ COPY ./app /app
 
 RUN pip install -r requirements.txt
 
-CMD ["streamlit", "run", "App.py", "--server.fileWatcherType", "none", "--browser.gatherUsageStats", "false","--server.enableXsrfProtection", "false", "--server.address", "0.0.0.0"]
+CMD ["streamlit", "run", "app.py", "--server.fileWatcherType", "none", "--browser.gatherUsageStats", "false","--server.enableXsrfProtection", "false", "--server.address", "0.0.0.0"]
