@@ -9,4 +9,6 @@ COPY ./app /app
 
 RUN pip install -r requirements.txt
 
+LABEL org.opencontainers.image.source https://github.com/RedisVentures/ArxivChatGuru
+
 CMD ["streamlit", "run", "app.py", "--server.fileWatcherType", "none", "--browser.gatherUsageStats", "false","--server.enableXsrfProtection", "false", "--server.address", "0.0.0.0"]
