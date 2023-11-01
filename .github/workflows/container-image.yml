@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - buildanduploadimage
 
 jobs:
   build-and-push:
@@ -30,5 +29,3 @@ jobs:
         context: .
         push: true
         tags: ghcr.io/${{ github.repository_owner }}/arxivchatguru:${{ github.ref == 'refs/heads/main' && 'latest' || 'canary' }}
-
-
