@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - fix-workflow
 
 jobs:
   build-and-push:
