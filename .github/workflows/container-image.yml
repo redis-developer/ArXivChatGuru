@@ -12,20 +12,20 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-      
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
-    
-    - name: Login to GitHub Container Registry
+
+    - name: Login to GHCR
       uses: docker/login-action@v1
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    
+        password: ${{ secrets.GITHUB_TOKEN }}  # or use your PAT: secrets.GHCR_PAT
+
     - name: Build and push
       uses: docker/build-push-action@v2
       with:
         context: .
         push: true
-        tags: ghcr.io/${{ github.repository_owner }}/arxivchatguru:${{ github.ref == 'refs/heads/main' && 'latest' || 'canary' }}
+        tags: ghcr.io/redisventures/arxivchatguru:${{ github.ref == 'refs/heads/main' && 'latest' || 'canary' }}
