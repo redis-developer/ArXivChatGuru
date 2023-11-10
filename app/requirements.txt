@@ -6,7 +6,7 @@ sentence-transformers
 tenacity
 pandas
 numpy
-openai
+openai==0.28.1
 tiktoken
 arxiv
 pymupdf
