@@ -2,7 +2,7 @@ import os
 import streamlit as st
 
 from urllib.error import URLError
-from redisvl.utils.utils import make_dict
+from redisvl.redis.utils import make_dict
 from redisvl.index import SearchIndex
 from redis.exceptions import ConnectionError, ResponseError
 from tabulate import tabulate

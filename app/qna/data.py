@@ -13,11 +13,11 @@ def get_arxiv_docs(paper_topic_query, num_docs=10) -> List[Document]:
     )
     raw_documents = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(
-    # Set a really small chunk size, just to show.
-    chunk_size = 500,
-    chunk_overlap  = 20,
-    length_function = len,
-    add_start_index = True,
+        # Set a really small chunk size, just to show.
+        chunk_size = 500,
+        chunk_overlap  = 20,
+        length_function = len,
+        add_start_index = True,
     )
     documents = text_splitter.split_documents(raw_documents)
     return documents

@@ -1,11 +1,9 @@
-import os
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from langchain.chains import RetrievalQA
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.llms.base import LLM
 from langchain.embeddings.base import Embeddings
-from langchain.embeddings import OpenAIEmbeddings
 
 from qna.constants import (
     OPENAI_COMPLETIONS_ENGINE,
@@ -22,7 +20,7 @@ def get_llm(max_tokens=100) -> LLM:
 
 
 def get_embeddings() -> Embeddings:
-    embeddings = OpenAIEmbeddings(model_name=OPENAI_EMBEDDINGS_ENGINE)
+    embeddings = OpenAIEmbeddings()
     return embeddings
 
 

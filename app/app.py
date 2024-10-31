@@ -41,7 +41,7 @@ def reset_app():
     arxiv_db = st.session_state['arxiv_db']
     if arxiv_db is not None:
         clear_cache()
-        arxiv_db.drop_index(arxiv_db.index_name, delete_documents=True, redis_url=REDIS_URL)
+        arxiv_db.index.delete(drop=True)
         st.session_state['arxiv_db'] = None
 
 
@@ -91,7 +91,6 @@ try:
         st.write("## Retrieval Settings")
         st.write("Feel free to change these anytime")
         st.slider("Number of Context Documents", 2, 20, 2, key="num_context_docs")
-        st.slider("Distance Threshold", .1, .9, .5, key="distance_threshold", step=.1)
 
         st.write("## App Settings")
         st.button("Clear Chat", key="clear_chat", on_click=lambda: st.session_state['messages'].clear())
@@ -125,8 +124,7 @@ try:
             arxiv_db,
             prompt=prompt,
             k=st.session_state['num_context_docs'],
-            search_type="similarity_distance_threshold",
-            distance_threshold=st.session_state["distance_threshold"]
+            search_type="similarity"
         )
         st.session_state['chain'] = chain
     except AttributeError:
@@ -148,13 +146,14 @@ try:
             chain = st.session_state['chain']
 
             result = chain({"query": query})
+            print(result, flush=True)
             st.markdown(result["result"])
             st.session_state['context'], st.session_state['response'] = result['source_documents'], result['result']
             if st.session_state['context']:
                 with st.expander("Context"):
                     context = defaultdict(list)
                     for doc in st.session_state['context']:
-                        context[doc.metadata['Title']].append(doc)
+                        context[doc.metadata['title']].append(doc)
                     for i, doc_tuple in enumerate(context.items(), 1):
                         title, doc_list = doc_tuple[0], doc_tuple[1]
                         st.write(f"{i}. **{title}**")
