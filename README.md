@@ -62,15 +62,14 @@ ____
     ```
     *fill out values, most importantly, your `OPENAI_API_KEY`.*
 
-3. Install dependencies:
-    You should have Python 3.7+ installed and a virtual environment set up.
+3. Install dependencies with Poetry:
     ```bash
-    $ pip install -r requirements.txt
+    $ poetry install --no-root
     ```
 
 4. Run the app:
     ```bash
-    $ streamlit run App.py
+    $ poetry run streamlit run app.py --server.fileWatcherType none --browser.gatherUsageStats false --server.enableXsrfProtection false --server.address 0.0.0.0
     ```
 
 5. Navigate to:
@@ -102,5 +101,5 @@ First, clone the repo like above.
 
 3. Navigate to:
     ```
-    http://localhost:8080/
+    http://localhost:8501/
     ```
