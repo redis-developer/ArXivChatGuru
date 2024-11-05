@@ -26,7 +26,7 @@ from qna.constants import CACHE_TYPE, REDIS_INDEX_NAME, REDIS_URL
 def get_vectorstore(documents: List[Document]=None) -> "RedisVectorStore":
     """Create the Redis vectorstore."""
 
-    config = RedisConfig.from_yaml("qna/arxiv.yaml")
+    config = RedisConfig.from_yaml("qna/arxiv.yaml", redis_url=REDIS_URL)
 
     embeddings = get_embeddings()
 
@@ -53,6 +53,7 @@ def get_vectorstore(documents: List[Document]=None) -> "RedisVectorStore":
     except:
         pass
 
+    print(REDIS_URL, flush=True)
     vectorstore = RedisVectorStore.from_documents(
         documents=cleaned_docs,
         embedding=embeddings,

@@ -3,9 +3,9 @@
     <a href="https://github.com/redis-developer/redis-ai-resources"><img src="./app/assets/arxivguru_crop.png" width="30%"><img></a>
 </div>
 
-# ArXiv ChatGuru: Exploring Conversational Scientific Literature 📖
+# ArXiv ChatGuru
 
-Welcome to **ArXiv ChatGuru**. This tool harnesses LangChain and Redis to make ArXiv's vast collection of scientific papers more interactive. Through this approach, we aim to make accessing and understanding research easier and more engaging, but also just to teach about how Retrieval Augmented Generation (RAG) systems work.
+Welcome to **ArXiv ChatGuru**. This tool harnesses `LangChain` and `Redis` to make ArXiv's vast collection of scientific papers more interactive. Through this approach, we aim to make accessing and understanding research easier and more engaging, but also just to teach about how Retrieval Augmented Generation (RAG) systems work.
 
 ## 📖 How it Works
 
@@ -39,11 +39,11 @@ This diagram shows the process how ArXiv ChatGuru works. The user submits a topi
 
 What we want to do next (ideas welcome!):
 
-- Pin stable versions of dependencies
+- [x] Pin stable versions of dependencies using poetry
 - Filters for Year, Author, etc.
 - More efficient chunking
-- More efficient embedding for semantic cache
-- Chat history and conversational memory (with langchain)
+- Various LLM caching toggles
+- Chat history and conversational memory in Redis
 
 ____
 
