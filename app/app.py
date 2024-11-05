@@ -11,14 +11,14 @@ if os.environ.get("QNA_DEBUG") == "true":
     langchain.debug = True
 
 from qna.llm import make_qna_chain, get_llm
-from qna.db import get_cache, get_vectorstore
+from qna.db import get_vectorstore#, get_cache
 from qna.prompt import basic_prompt
 from qna.data import get_arxiv_docs
 from qna.constants import REDIS_URL
 
-@st.cache_resource
-def fetch_llm_cache():
-    return get_cache()
+# @st.cache_resource
+# def fetch_llm_cache():
+#     return get_cache()
 
 @st.cache_resource
 def create_arxiv_index(topic_query, _num_papers, _prompt):
@@ -40,21 +40,20 @@ def reset_app():
 
     arxiv_db = st.session_state['arxiv_db']
     if arxiv_db is not None:
-        clear_cache()
-        arxiv_db.index.delete(drop=True)
-        st.session_state['arxiv_db'] = None
+        #clear_cache()
+        arxiv_db.index.clear()
 
 
-def clear_cache():
-    if not st.session_state["llm"]:
-        st.warning("Could not find llm to clear cache of")
-    llm = st.session_state["llm"]
-    llm_string = llm._get_llm_string()
-    langchain.llm_cache.clear(llm_string=llm_string)
+# def clear_cache():
+#     if not st.session_state["llm"]:
+#         st.warning("Could not find llm to clear cache of")
+#     llm = st.session_state["llm"]
+#     llm_string = llm._get_llm_string()
+#     langchain.llm_cache.clear(llm_string=llm_string)
 
 
 try:
-    langchain.llm_cache = fetch_llm_cache()
+    #langchain.llm_cache = fetch_llm_cache()
     prompt = basic_prompt()
 
     # Defining default values
@@ -94,7 +93,7 @@ try:
 
         st.write("## App Settings")
         st.button("Clear Chat", key="clear_chat", on_click=lambda: st.session_state['messages'].clear())
-        st.button("Clear Cache", key="clear_cache", on_click=clear_cache)
+        #st.button("Clear Cache", key="clear_cache", on_click=clear_cache)
         st.button("New Conversation", key="reset", on_click=reset_app)
 
     col1, col2 = st.columns(2)

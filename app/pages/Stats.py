@@ -4,6 +4,7 @@ import streamlit as st
 from urllib.error import URLError
 from redisvl.redis.utils import make_dict
 from redisvl.index import SearchIndex
+from redisvl.schema import IndexSchema
 from redis.exceptions import ConnectionError, ResponseError
 from tabulate import tabulate
 from dotenv import load_dotenv
@@ -100,7 +101,8 @@ def display_index_stats(index_info, output_format="html"):
 try:
 
     try:
-        index = SearchIndex.from_existing(name=REDIS_INDEX_NAME, url=REDIS_URL)
+        schema = IndexSchema.from_yaml("qna/arxiv.yaml")
+        index = SearchIndex.from_existing(name=schema.index.name, redis_url=REDIS_URL)
         index_info = index.info()
         display_index_stats(index_info)
         display_stats(index_info)

@@ -1,7 +1,7 @@
 from typing import List
 
 from langchain.schema import Document
-from langchain.document_loaders import ArxivLoader
+from langchain_community.document_loaders import ArxivLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
