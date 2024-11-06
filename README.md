@@ -1,11 +1,11 @@
 
 <div align="center">
-    <a href="https://github.com/CrayLabs/SmartSim"><img src="./app/assets/arxivguru_crop.png" width="30%"><img></a>
+    <a href="https://github.com/redis-developer/redis-ai-resources"><img src="./app/assets/arxivguru_crop.png" width="30%"><img></a>
 </div>
 
-# ArXiv ChatGuru: Exploring Conversational Scientific Literature 📖
+# ArXiv ChatGuru
 
-Welcome to **ArXiv ChatGuru**. This tool harnesses LangChain and Redis to make ArXiv's vast collection of scientific papers more interactive. Through this approach, we aim to make accessing and understanding research easier and more engaging, but also just to teach about how Retrieval Augmented Generation (RAG) systems work.
+Welcome to **ArXiv ChatGuru**. This tool harnesses `LangChain` and `Redis` to make ArXiv's vast collection of scientific papers more interactive. Through this approach, we aim to make accessing and understanding research easier and more engaging, but also just to teach about how Retrieval Augmented Generation (RAG) systems work.
 
 ## 📖 How it Works
 
@@ -21,6 +21,7 @@ This diagram shows the process how ArXiv ChatGuru works. The user submits a topi
 3. **Redis**: Demonstrating fast and efficient vector storage, indexing, and retrieval for RAG.
 4. **RetrievalQA**: Building on LangChain's RetrievalQA and OpenAI models, users can write queries about papers retrieved by the topic they submit.
 5. **Python Libraries**: Making use of tools such as [`redisvl`](https://redisvl.com), [`Langchain`](https://www.langchain.com/), [`Streamlit`](https://streamlit.io/), etc
+
 ## 💡 Learning Outcomes with ArXiv ChatGuru
 
 - **Context Window Exploration**: Learn about the importance of context window size and how it influences interaction results.
@@ -38,11 +39,11 @@ This diagram shows the process how ArXiv ChatGuru works. The user submits a topi
 
 What we want to do next (ideas welcome!):
 
-- Pin stable versions of dependencies
+- [x] Pin stable versions of dependencies using poetry
 - Filters for Year, Author, etc.
 - More efficient chunking
-- More efficient embedding for semantic cache
-- Chat history and conversational memory (with langchain)
+- Various LLM caching toggles
+- Chat history and conversational memory in Redis
 
 ____
 
@@ -61,15 +62,14 @@ ____
     ```
     *fill out values, most importantly, your `OPENAI_API_KEY`.*
 
-3. Install dependencies:
-    You should have Python 3.7+ installed and a virtual environment set up.
+3. Install dependencies with Poetry:
     ```bash
-    $ pip install -r requirements.txt
+    $ poetry install --no-root
     ```
 
 4. Run the app:
     ```bash
-    $ streamlit run App.py
+    $ poetry run streamlit run app.py --server.fileWatcherType none --browser.gatherUsageStats false --server.enableXsrfProtection false --server.address 0.0.0.0
     ```
 
 5. Navigate to:
@@ -101,5 +101,5 @@ First, clone the repo like above.
 
 3. Navigate to:
     ```
-    http://localhost:8080/
+    http://localhost:8501/
     ```

@@ -1,0 +1,22 @@
+index:
+  name: arxiv
+  prefix: arxiv
+  key_separator: ':'
+  storage_type: hash
+fields:
+- name: text
+  type: text
+- name: authors
+  type: tag
+- name: title
+  type: text
+- name: links
+  type: tag
+- name: embedding
+  type: vector
+  attrs:
+    dims: 1536
+    algorithm: flat
+    datatype: float32
+    distance_metric: cosine
+version: 0.1.0

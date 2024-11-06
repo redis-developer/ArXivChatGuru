@@ -11,14 +11,14 @@ if os.environ.get("QNA_DEBUG") == "true":
     langchain.debug = True
 
 from qna.llm import make_qna_chain, get_llm
-from qna.db import get_cache, get_vectorstore
+from qna.db import get_vectorstore#, get_cache
 from qna.prompt import basic_prompt
 from qna.data import get_arxiv_docs
 from qna.constants import REDIS_URL
 
-@st.cache_resource
-def fetch_llm_cache():
-    return get_cache()
+# @st.cache_resource
+# def fetch_llm_cache():
+#     return get_cache()
 
 @st.cache_resource
 def create_arxiv_index(topic_query, _num_papers, _prompt):
@@ -40,21 +40,20 @@ def reset_app():
 
     arxiv_db = st.session_state['arxiv_db']
     if arxiv_db is not None:
-        clear_cache()
-        arxiv_db.drop_index(arxiv_db.index_name, delete_documents=True, redis_url=REDIS_URL)
-        st.session_state['arxiv_db'] = None
+        #clear_cache()
+        arxiv_db.index.clear()
 
 
-def clear_cache():
-    if not st.session_state["llm"]:
-        st.warning("Could not find llm to clear cache of")
-    llm = st.session_state["llm"]
-    llm_string = llm._get_llm_string()
-    langchain.llm_cache.clear(llm_string=llm_string)
+# def clear_cache():
+#     if not st.session_state["llm"]:
+#         st.warning("Could not find llm to clear cache of")
+#     llm = st.session_state["llm"]
+#     llm_string = llm._get_llm_string()
+#     langchain.llm_cache.clear(llm_string=llm_string)
 
 
 try:
-    langchain.llm_cache = fetch_llm_cache()
+    #langchain.llm_cache = fetch_llm_cache()
     prompt = basic_prompt()
 
     # Defining default values
@@ -91,11 +90,10 @@ try:
         st.write("## Retrieval Settings")
         st.write("Feel free to change these anytime")
         st.slider("Number of Context Documents", 2, 20, 2, key="num_context_docs")
-        st.slider("Distance Threshold", .1, .9, .5, key="distance_threshold", step=.1)
 
         st.write("## App Settings")
         st.button("Clear Chat", key="clear_chat", on_click=lambda: st.session_state['messages'].clear())
-        st.button("Clear Cache", key="clear_cache", on_click=clear_cache)
+        #st.button("Clear Cache", key="clear_cache", on_click=clear_cache)
         st.button("New Conversation", key="reset", on_click=reset_app)
 
     col1, col2 = st.columns(2)
@@ -125,8 +123,7 @@ try:
             arxiv_db,
             prompt=prompt,
             k=st.session_state['num_context_docs'],
-            search_type="similarity_distance_threshold",
-            distance_threshold=st.session_state["distance_threshold"]
+            search_type="similarity"
         )
         st.session_state['chain'] = chain
     except AttributeError:
@@ -148,13 +145,14 @@ try:
             chain = st.session_state['chain']
 
             result = chain({"query": query})
+            print(result, flush=True)
             st.markdown(result["result"])
             st.session_state['context'], st.session_state['response'] = result['source_documents'], result['result']
             if st.session_state['context']:
                 with st.expander("Context"):
                     context = defaultdict(list)
                     for doc in st.session_state['context']:
-                        context[doc.metadata['Title']].append(doc)
+                        context[doc.metadata['title']].append(doc)
                     for i, doc_tuple in enumerate(context.items(), 1):
                         title, doc_list = doc_tuple[0], doc_tuple[1]
                         st.write(f"{i}. **{title}**")

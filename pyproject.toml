@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "arxivchatguru"
+version = "0.1.0"
+description = "Interact with scientific papers from Arxiv using OpenAI, Redis, and LangChain."
+authors = ["Tyler Hutcherson <tyler.hutcherson@redis.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+langchain-core = "^0.3.15"
+langchain = "^0.3.6"
+langchain-openai = "^0.2.5"
+langchain-redis = "^0.1.1"
+langchain-huggingface = "^0.1.2"
+tenacity = "^9.0.0"
+streamlit = "^1.39.0"
+python-dotenv = "^1.0.1"
+pymupdf = "^1.24.13"
+langchain-community = "^0.3.4"
+arxiv = "^2.1.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

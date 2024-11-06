@@ -15,7 +15,7 @@ def basic_prompt():
     Answer in Markdown:
     """
 
-    prompt = PromptTemplate(
+    return PromptTemplate(
         template=prompt_template,
         input_variables=["context", "question"],
     )
