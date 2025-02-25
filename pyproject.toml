@@ -1,17 +1,18 @@
 [tool.poetry]
 name = "arxivchatguru"
-version = "0.1.0"
+version = "0.2.0"
 description = "Interact with scientific papers from Arxiv using OpenAI, Redis, and LangChain."
 authors = ["Tyler Hutcherson <tyler.hutcherson@redis.com>"]
 license = "MIT"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.14"
 langchain-core = "^0.3.15"
 langchain = "^0.3.6"
 langchain-openai = "^0.2.5"
-langchain-redis = "^0.1.1"
+langchain-redis = "^0.2.0"
 langchain-huggingface = "^0.1.2"
 tenacity = "^9.0.0"
 streamlit = "^1.39.0"

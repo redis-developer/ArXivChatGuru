@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 
 from urllib.error import URLError
@@ -10,7 +9,7 @@ from tabulate import tabulate
 from dotenv import load_dotenv
 load_dotenv()
 
-from qna.constants import REDIS_URL, REDIS_INDEX_NAME
+from qna.constants import REDIS_URL
 
 STATS_KEYS = [
     "num_docs",
