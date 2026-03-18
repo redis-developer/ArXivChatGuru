@@ -9,17 +9,31 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.14"
-langchain-core = "^0.3.15"
-langchain = "^0.3.6"
-langchain-openai = "^0.2.5"
+langchain-core = "^0.3.39"
+langchain = "^0.3.19"
+langchain-openai = "^0.2.14"
 langchain-redis = "^0.2.0"
-langchain-huggingface = "^0.1.2"
 tenacity = "^9.0.0"
-streamlit = "^1.39.0"
+streamlit = "^1.42.2"
 python-dotenv = "^1.0.1"
-pymupdf = "^1.24.13"
-langchain-community = "^0.3.4"
+pymupdf = "^1.25.3"
+langchain-community = "^0.3.18"
 arxiv = "^2.1.3"
+redis = "^6.4.0"
+aiohttp = "^3.11.18"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+pytest-mock = "^3.14.0"
+ruff = "^0.11.2"
+
+[tool.pytest.ini_options]
+pythonpath = ["app"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
 
 
 [build-system]

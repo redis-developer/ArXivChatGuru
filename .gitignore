@@ -2,3 +2,7 @@
 .ipynb_checkpoints
 .DS_Store
 __pycache__/
+.poetry-cache/
+.pytest_cache/
+.ruff_cache/
+.venv/

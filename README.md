@@ -1,105 +1,121 @@
-
 <div align="center">
-    <a href="https://github.com/redis-developer/redis-ai-resources"><img src="./app/assets/arxivguru_crop.png" width="30%"><img></a>
+  <a href="https://github.com/redis-developer/redis-ai-resources">
+    <img src="./app/assets/arxivguru_crop.png" width="30%" alt="ArXiv ChatGuru logo">
+  </a>
 </div>
 
 # ArXiv ChatGuru
 
-Welcome to **ArXiv ChatGuru**. This tool harnesses `LangChain` and `Redis` to make ArXiv's vast collection of scientific papers more interactive. Through this approach, we aim to make accessing and understanding research easier and more engaging, but also just to teach about how Retrieval Augmented Generation (RAG) systems work.
+ArXiv ChatGuru is a Streamlit app that turns a topic from arXiv into a topic-scoped Redis vector index. It fetches papers, chunks them, stores embeddings in Redis, and lets you ask grounded questions against the papers you loaded.
 
-## 📖 How it Works
+This app is a learning project for academic RAG. It is intentionally simple and is meant to show how Redis fits into a paper Q&A workflow, not to act as a production-ready research assistant.
 
-This diagram shows the process how ArXiv ChatGuru works. The user submits a topic, which is used to retrieve relevant papers from ArXiv. These papers are then chunked into smaller pieces, for which embeddings are generated. These embeddings are stored in Redis, which is used as a vector database. The user can then ask questions about the papers retrieved by the topic they submitted, and the system will return the most relevant answer.
+## What Redis does in this app
 
-![ref arch](app/assets/diagram.png#gh-light-mode-only)
-![ref arch](app/assets/diagram-dark.png#gh-dark-mode-only)
+- Stores topic-specific paper chunks and embeddings
+- Powers vector search for retrieval
+- Lets you inspect the active index from the built-in stats page
 
-## 🛠 Components
+## How it works
 
-1. **LangChain's ArXiv Loader**: Efficiently pull scientific literature directly from ArXiv.
-2. **Chunking + Embedding**: Using LangChain, we segment lengthy papers into manageable pieces (rather arbitrarily currently), for which we then generate embeddings.
-3. **Redis**: Demonstrating fast and efficient vector storage, indexing, and retrieval for RAG.
-4. **RetrievalQA**: Building on LangChain's RetrievalQA and OpenAI models, users can write queries about papers retrieved by the topic they submit.
-5. **Python Libraries**: Making use of tools such as [`redisvl`](https://redisvl.com), [`Langchain`](https://www.langchain.com/), [`Streamlit`](https://streamlit.io/), etc
+1. Enter a topic and choose how many papers to load.
+2. The app pulls papers from arXiv and splits them into chunks.
+3. OpenAI generates embeddings for those chunks.
+4. Redis stores the chunks and embeddings in a topic-scoped index.
+5. LangChain retrieves the closest chunks for each user question and sends that context to the chat model.
 
-## 💡 Learning Outcomes with ArXiv ChatGuru
+![Architecture diagram](app/assets/diagram.png#gh-light-mode-only)
+![Architecture diagram](app/assets/diagram-dark.png#gh-dark-mode-only)
 
-- **Context Window Exploration**: Learn about the importance of context window size and how it influences interaction results.
-- **Vector Distance Insights**: Understand the role of vector distance in context retrieval for RAG and see how adjustments can change response specificity.
-- **Document Retrieval Dynamics**: Observe how the number of documents retrieved can influence the performance of a RAG (Retriever-Augmented Generation) system.
-- **Using Redis as a Vector DB and Semantic Cache**: Learn how to use Redis as a vector database for RAG systems and how to use it as a semantic cache for RAG systems.
+## Prerequisites
 
+- Python 3.13 for local development
+- Docker Desktop if you want the Docker-first flow
+- An OpenAI API key
 
-**Note**: This **is not** a production application. It's a learning tool more than anything. We're using Streamlit to make it easy to interact with, but it's not meant to be a scalable application. It's meant to be a learning tool for understanding how RAG systems work, and how they can be used to make scientific literature more interactive. We will continue to make this better over time.
+## Environment setup
 
+Create a `.env` file from the template:
 
-🌟 If you love what we're doing, give us a star! Contributions and feedback are always welcome. 🌌🔭
+```bash
+cp .env.template .env
+```
 
-## Up Next
+Then set at least:
 
-What we want to do next (ideas welcome!):
+```bash
+OPENAI_API_KEY=your_key_here
+```
 
-- [x] Pin stable versions of dependencies using poetry
-- Filters for Year, Author, etc.
-- More efficient chunking
-- Various LLM caching toggles
-- Chat history and conversational memory in Redis
+The default template uses:
 
-____
+- `OPENAI_CHAT_MODEL=gpt-4.1-mini`
+- `OPENAI_EMBEDDING_MODEL=text-embedding-3-small`
+- `REDIS_INDEX_BASENAME=arxiv`
+- `REDIS_URL=redis://arxivchatguru-redis:6379`
 
-## Run the App
+## Run with Docker
 
-### Run Locally
+Docker is the primary local path.
 
-1. First, clone this repo and cd into it.
-    ```bash
-    $ git clone https://github.com/redis-developer/ArXivChatGuru.git && cd ArxivChatGuru
-    ```
+```bash
+make docker-up
+```
 
-2. Create your env file:
-    ```bash
-    $ cp .env.template .env
-    ```
-    *fill out values, most importantly, your `OPENAI_API_KEY`.*
+Then open:
 
-3. Install dependencies with Poetry:
-    ```bash
-    $ poetry install --no-root
-    ```
+```text
+http://localhost:8501
+```
 
-4. Run the app:
-    ```bash
-    $ poetry run streamlit run app.py --server.fileWatcherType none --browser.gatherUsageStats false --server.enableXsrfProtection false --server.address 0.0.0.0
-    ```
+To stop the stack:
 
-5. Navigate to:
-    ```
-    http://localhost:8501/
-    ```
+```bash
+make docker-down
+```
 
+## Run locally
 
-### Docker Compose
+Install Poetry if you do not already have it:
 
-First, clone the repo like above.
+```bash
+python3 -m pip install --user poetry
+```
 
-1. Create your env file:
-    ```bash
-    $ cp .env.template .env
-    ```
-    *fill out values, most importantly, your `OPENAI_API_KEY`.*
+Use Python 3.13 for the project environment, install dependencies, and start the app:
 
-2. Run with docker compose:
-    ```bash
-    $ docker compose up
-    ```
-    *add `-d` option to daemonize the processes to the background if you wish.*
+```bash
+python3 -m poetry env use python3.13
+make install
+make dev
+```
 
-    Issues with dependencies? Try force-building with no-cache:
-    ```
-    $ docker compose build --no-cache
-    ```
+Then open:
 
-3. Navigate to:
-    ```
-    http://localhost:8501/
-    ```
+```text
+http://localhost:8501
+```
+
+If you run locally outside Docker, make sure `REDIS_URL` points at a reachable Redis instance such as `redis://localhost:6379`.
+
+## Developer commands
+
+- `make format` formats the app and tests
+- `make test` runs the test suite
+- `make build` builds the Docker image
+- `make dev` starts Streamlit locally
+- `make docker-up` starts the app with Docker Compose
+
+## Stats page
+
+After you load a topic from the main page, open the Streamlit stats page to inspect the active Redis index. It shows:
+
+- Index metadata
+- Indexed fields
+- Query Engine stats for the active topic
+
+## Planned follow-ups
+
+- Add better metadata filters such as year or author
+- Improve chunking strategy for long papers
+- Add chat history or memory features only if the tutorial needs them

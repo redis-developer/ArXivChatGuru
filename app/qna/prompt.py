@@ -1,5 +1,6 @@
 from langchain.prompts import PromptTemplate
 
+
 def basic_prompt():
     # Define our prompt
     prompt_template = """You are an AI assistant for answering questions about technical topics.

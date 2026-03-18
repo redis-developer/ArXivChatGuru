@@ -6,18 +6,21 @@ from langchain.llms.base import LLM
 from langchain.embeddings.base import Embeddings
 from langchain_redis import RedisVectorStore
 from qna.constants import (
-    OPENAI_COMPLETIONS_ENGINE,
-    OPENAI_EMBEDDINGS_ENGINE,
+    ensure_openai_api_key,
+    get_chat_model_name,
+    get_embedding_model_name,
 )
 
 
 def get_llm(max_tokens=100) -> LLM:
-    llm = ChatOpenAI(model_name=OPENAI_COMPLETIONS_ENGINE, max_tokens=max_tokens)
+    ensure_openai_api_key()
+    llm = ChatOpenAI(model=get_chat_model_name(), max_tokens=max_tokens)
     return llm
 
 
 def get_embeddings() -> Embeddings:
-    embeddings = OpenAIEmbeddings(model=OPENAI_EMBEDDINGS_ENGINE)
+    ensure_openai_api_key()
+    embeddings = OpenAIEmbeddings(model=get_embedding_model_name())
     return embeddings
 
 

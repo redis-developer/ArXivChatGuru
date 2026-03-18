@@ -1,111 +1,35 @@
-import streamlit as st
-
 from urllib.error import URLError
-from redisvl.redis.utils import make_dict
-from redisvl.index import SearchIndex
-from redisvl.schema import IndexSchema
-from redis.exceptions import ConnectionError, ResponseError
-from tabulate import tabulate
+
+import streamlit as st
 from dotenv import load_dotenv
+from redis.exceptions import ConnectionError, ResponseError
+
+from qna.stats import build_attribute_rows, build_index_rows, build_stats_rows, get_index_info
+
 load_dotenv()
 
-from qna.constants import REDIS_URL
-
-STATS_KEYS = [
-    "num_docs",
-    "num_records",
-    "number_of_uses",
-    "percent_indexed",
-    "total_indexing_time",
-    "bytes_per_record_avg",
-    "records_per_doc_avg",
-    "doc_table_size_mb",
-    "vector_index_sz_mb",
-]
-
-
-def display_stats(index_info, output_format="html"):
-    # Extracting the statistics
-    stats_data = [(key, str(index_info.get(key))) for key in STATS_KEYS]
-
-    # Display the statistics in tabular format
-    st.write("## Statistics:")
-    st.write(
-        tabulate(
-            stats_data,
-            headers=["Stat Key", "Value"],
-            tablefmt=output_format,
-            colalign=("left", "left"),
-        ), unsafe_allow_html=True
-    )
-
-def display_index_stats(index_info, output_format="html"):
-    attributes = index_info.get("attributes", [])
-    definition = make_dict(index_info.get("index_definition"))
-    index_info = [
-        index_info.get("index_name"),
-        definition.get("key_type"),
-        definition.get("prefixes"),
-        index_info.get("index_options"),
-        index_info.get("indexing"),
-    ]
-
-    # Display the index information in tabular format
-    st.write("## Index Information:")
-    st.write(
-        tabulate(
-            [index_info],
-            headers=[
-                "Index Name",
-                "Storage Type",
-                "Prefixes",
-                "Index Options",
-                "Indexing",
-            ],
-            tablefmt=output_format,
-        ), unsafe_allow_html=True
-    )
-
-    attr_values = []
-    headers = [
-        "Name",
-        "Attribute",
-        "Type",
-    ]
-
-    for attrs in attributes:
-        attr = make_dict(attrs)
-
-        values = [attr.get("identifier"), attr.get("attribute"), attr.get("type")]
-        if len(attrs) > 5:
-            options = make_dict(attrs)
-            for k, v in options.items():
-                if k not in ["identifier", "attribute", "type"]:
-                    headers.append("Field Option")
-                    headers.append("Option Value")
-                    values.append(k)
-                    values.append(v)
-        attr_values.append(values)
-
-    # Display the attributes in tabular format
-    st.write("## Index Fields:")
-    st.write(
-        tabulate(
-            attr_values,
-            headers=headers,
-            tablefmt=output_format,
-        ), unsafe_allow_html=True
-    )
-
 try:
+    st.title("Redis index stats")
+    active_index_name = st.session_state.get("active_index_name", "")
+    active_topic = st.session_state.get("loaded_topic", "")
+
+    if not active_index_name:
+        st.info("Load papers from the main app to inspect the active Redis index.")
+        st.stop()
+
+    if active_topic:
+        st.caption(f"Inspecting Redis index `{active_index_name}` for topic `{active_topic}`.")
 
     try:
-        schema = IndexSchema.from_yaml("qna/arxiv.yaml")
-        index = SearchIndex.from_existing(name=schema.index.name, redis_url=REDIS_URL)
-        index_info = index.info()
-        display_index_stats(index_info)
-        display_stats(index_info)
+        index_info = get_index_info(active_index_name)
+        st.write("## Index information")
+        st.table(build_index_rows(index_info))
 
+        st.write("## Index fields")
+        st.table(build_attribute_rows(index_info))
+
+        st.write("## Statistics")
+        st.table(build_stats_rows(index_info))
     except ConnectionError as e:
         st.error(
             """
@@ -117,12 +41,11 @@ try:
     except ResponseError as e:
         st.error(
             """
-            **Could not connect to index for demo**
+            **Could not load the active Redis index**
             Response error: %s
             """
             % e
         )
-
 
 except URLError as e:
     st.error(

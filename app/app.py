@@ -1,134 +1,146 @@
 import os
+from collections import defaultdict
+from pathlib import Path
+from urllib.error import URLError
+
 import langchain
 import streamlit as st
-
-from collections import defaultdict
-from urllib.error import URLError
 from dotenv import load_dotenv
+
+from qna.constants import get_index_name
+from qna.data import get_arxiv_docs
+from qna.db import clear_vectorstore, get_vectorstore
+from qna.llm import get_llm, make_qna_chain
+from qna.prompt import basic_prompt
+
 load_dotenv()
 
 if os.environ.get("QNA_DEBUG") == "true":
     langchain.debug = True
 
-from qna.llm import make_qna_chain, get_llm
-from qna.db import get_vectorstore#, get_cache
-from qna.prompt import basic_prompt
-from qna.data import get_arxiv_docs
-from qna.constants import REDIS_URL
+ASSETS_DIR = Path(__file__).parent / "assets"
+APP_AVATAR = str(ASSETS_DIR / "arxivguru_crop.png")
 
-# @st.cache_resource
-# def fetch_llm_cache():
-#     return get_cache()
 
-@st.cache_resource
-def create_arxiv_index(topic_query, _num_papers, _prompt):
-    arxiv_documents = get_arxiv_docs(topic_query, _num_papers)
-    arxiv_db = get_vectorstore(arxiv_documents)
-    st.session_state['arxiv_db'] = arxiv_db
+def create_arxiv_index(topic_query: str, num_papers: int):
+    arxiv_documents = get_arxiv_docs(topic_query, num_papers)
+    arxiv_db = get_vectorstore(arxiv_documents, topic_query)
+    st.session_state["arxiv_db"] = arxiv_db
     return arxiv_db
 
-def is_updated(topic):
+
+def should_reload_index(topic: str, num_papers: int) -> bool:
     return (
-        topic != st.session_state['previous_topic']
+        st.session_state["arxiv_db"] is None
+        or topic != st.session_state["loaded_topic"]
+        or num_papers != st.session_state["loaded_num_papers"]
     )
 
-def reset_app():
-    st.session_state['previous_topic'] = ""
-    st.session_state['arxiv_topic'] = ""
-    st.session_state['arxiv_query'] = ""
-    st.session_state['messages'].clear()
 
-    arxiv_db = st.session_state['arxiv_db']
-    if arxiv_db is not None:
-        #clear_cache()
-        arxiv_db.index.clear()
+def clear_chat() -> None:
+    st.session_state["messages"].clear()
 
 
-# def clear_cache():
-#     if not st.session_state["llm"]:
-#         st.warning("Could not find llm to clear cache of")
-#     llm = st.session_state["llm"]
-#     llm_string = llm._get_llm_string()
-#     langchain.llm_cache.clear(llm_string=llm_string)
+def reset_app() -> None:
+    clear_vectorstore(st.session_state.get("arxiv_db"))
+    st.session_state["arxiv_topic"] = ""
+    st.session_state["messages"] = []
+    st.session_state["arxiv_db"] = None
+    st.session_state["loaded_topic"] = ""
+    st.session_state["loaded_num_papers"] = None
+    st.session_state["active_index_name"] = ""
 
 
 try:
-    #langchain.llm_cache = fetch_llm_cache()
     prompt = basic_prompt()
-
-    # Defining default values
-    default_question = ""
-    default_answer = ""
     defaults = {
-        "response": {
-            "choices" :[{
-                "text" : default_answer
-            }]
-        },
-        "question": default_question,
+        "response": "",
         "context": [],
-        "chain": None,
-        "previous_topic": "",
         "arxiv_topic": "",
-        "arxiv_query": "",
         "arxiv_db": None,
-        "llm": None,
+        "loaded_topic": "",
+        "loaded_num_papers": None,
+        "active_index_name": "",
         "messages": [],
     }
 
-    # Checking if keys exist in session state, if not, initializing them
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
 
     with st.sidebar:
         st.write("## LLM Settings")
-        ##st.write("### Prompt") TODO make possible to change prompt
-        st.write("Change these before you run the app!")
+        st.write("Change these before you load a topic into Redis.")
         st.slider("Number of Tokens", 100, 8000, 400, key="max_tokens")
 
         st.write("## Retrieval Settings")
-        st.write("Feel free to change these anytime")
+        st.write("You can change retrieval settings at any time.")
         st.slider("Number of Context Documents", 2, 20, 2, key="num_context_docs")
 
         st.write("## App Settings")
-        st.button("Clear Chat", key="clear_chat", on_click=lambda: st.session_state['messages'].clear())
-        #st.button("Clear Cache", key="clear_cache", on_click=clear_cache)
+        st.button("Clear Chat", key="clear_chat", on_click=clear_chat)
         st.button("New Conversation", key="reset", on_click=reset_app)
 
     col1, col2 = st.columns(2)
     with col1:
-        st.title("Arxiv ChatGuru")
-        st.write("**Put in a topic area and a question within that area to get an answer!**")
-        topic = st.text_input("Topic Area", key="arxiv_topic")
-        papers = st.number_input("Number of Papers", key="num_papers", value=10, min_value=1, max_value=50, step=2)
-    with col2:
-        st.image("./assets/arxivguru_crop.png")
-
-
-
-    if st.button("Chat!"):
-        if is_updated(topic):
-            st.session_state['previous_topic'] = topic
-            with st.spinner("Loading information from Arxiv to answer your question..."):
-                create_arxiv_index(st.session_state['arxiv_topic'], st.session_state['num_papers'], prompt)
-
-    arxiv_db = st.session_state['arxiv_db']
-    if st.session_state["llm"] is None:
-        tokens = st.session_state["max_tokens"]
-        st.session_state["llm"] = get_llm(max_tokens=tokens)
-    try:
-        chain = make_qna_chain(
-            st.session_state["llm"],
-            arxiv_db,
-            prompt=prompt,
-            k=st.session_state['num_context_docs'],
-            search_type="similarity"
+        st.title("ArXiv ChatGuru")
+        st.write(
+            "Load a topic-specific paper set into Redis, then ask grounded questions about that research area."
         )
-        st.session_state['chain'] = chain
-    except AttributeError:
-        st.info("Please enter a topic area")
+        topic = st.text_input("Topic Area", key="arxiv_topic")
+        papers = st.number_input(
+            "Number of Papers",
+            key="num_papers",
+            value=10,
+            min_value=1,
+            max_value=50,
+            step=1,
+        )
+    with col2:
+        st.image(APP_AVATAR)
+
+    if st.session_state["loaded_topic"]:
+        st.caption(
+            f"Loaded topic: `{st.session_state['loaded_topic']}` using Redis index "
+            f"`{st.session_state['active_index_name']}`."
+        )
+
+    if topic and st.session_state["loaded_topic"] and topic != st.session_state["loaded_topic"]:
+        st.warning("The topic input changed. Load papers again to switch the Redis index.")
+
+    if papers != st.session_state["loaded_num_papers"] and st.session_state["loaded_topic"]:
+        st.warning("The paper count changed. Load papers again to rebuild the Redis index.")
+
+    if st.button("Load papers into Redis"):
+        topic = topic.strip()
+        if not topic:
+            st.warning("Enter a topic before loading papers.")
+        elif should_reload_index(topic, papers):
+            if st.session_state["arxiv_db"] is not None:
+                clear_vectorstore(st.session_state["arxiv_db"])
+            with st.spinner("Loading papers from arXiv and indexing them in Redis..."):
+                arxiv_db = create_arxiv_index(topic, papers)
+            st.session_state["arxiv_db"] = arxiv_db
+            st.session_state["loaded_topic"] = topic
+            st.session_state["loaded_num_papers"] = papers
+            st.session_state["active_index_name"] = get_index_name(topic)
+            st.success("Redis index is ready. Ask a question below.")
+        else:
+            st.info("This topic is already loaded. Ask a question below.")
+
+    arxiv_db = st.session_state["arxiv_db"]
+    if arxiv_db is None:
+        st.info("Load a topic into Redis before starting the chat.")
         st.stop()
+
+    llm = get_llm(max_tokens=st.session_state["max_tokens"])
+    chain = make_qna_chain(
+        llm,
+        arxiv_db,
+        prompt=prompt,
+        k=st.session_state["num_context_docs"],
+        search_type="similarity",
+    )
 
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
@@ -139,28 +151,26 @@ try:
         with st.chat_message("user"):
             st.markdown(query)
 
-        with st.chat_message("assistant", avatar="./assets/arxivguru_crop.png"):
-            message_placeholder = st.empty()
-            st.session_state['context'], st.session_state['response'] = [], ""
-            chain = st.session_state['chain']
-
+        with st.chat_message("assistant", avatar=APP_AVATAR):
+            st.session_state["context"], st.session_state["response"] = [], ""
             result = chain({"query": query})
-            print(result, flush=True)
             st.markdown(result["result"])
-            st.session_state['context'], st.session_state['response'] = result['source_documents'], result['result']
-            if st.session_state['context']:
+            st.session_state["context"] = result["source_documents"]
+            st.session_state["response"] = result["result"]
+
+            if st.session_state["context"]:
                 with st.expander("Context"):
                     context = defaultdict(list)
-                    for doc in st.session_state['context']:
-                        context[doc.metadata['title']].append(doc)
-                    for i, doc_tuple in enumerate(context.items(), 1):
-                        title, doc_list = doc_tuple[0], doc_tuple[1]
+                    for doc in st.session_state["context"]:
+                        context[doc.metadata["title"]].append(doc)
+                    for i, (title, doc_list) in enumerate(context.items(), 1):
                         st.write(f"{i}. **{title}**")
                         for context_num, doc in enumerate(doc_list, 1):
                             st.write(f" - **Context {context_num}**: {doc.page_content}")
 
-            st.session_state.messages.append({"role": "assistant", "content": st.session_state['response']})
-
+            st.session_state.messages.append(
+                {"role": "assistant", "content": st.session_state["response"]}
+            )
 
 except URLError as e:
     st.error(

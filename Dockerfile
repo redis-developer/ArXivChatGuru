@@ -1,22 +1,17 @@
-FROM python:3.11-slim-buster
+FROM python:3.12-slim
 
-RUN apt-get update && apt-get install python-tk python3-tk tk-dev curl -y
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_CREATE=false
 
-RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python && \
-    cd /usr/local/bin && \
-    ln -s /opt/poetry/bin/poetry && \
-    poetry config virtualenvs.create false
-
-# Copy the deps file into the container
-COPY ./poetry.lock ./pyproject.toml ./
+RUN python3 -m pip install --no-cache-dir poetry==2.3.2
 
 WORKDIR /app
-
-# Copy all files and subdirectories from ./app to /app in the image
-COPY ./app /app
-
-RUN poetry install --no-root
+COPY pyproject.toml poetry.lock README.md ./
+RUN python3 -m poetry install --only main --no-root
+COPY app ./app
 
 LABEL org.opencontainers.image.source https://github.com/redis-developer/ArxivChatGuru
 
-CMD ["poetry", "run", "streamlit", "run", "app.py", "--server.fileWatcherType", "none", "--browser.gatherUsageStats", "false","--server.enableXsrfProtection", "false", "--server.address", "0.0.0.0"]
+CMD ["python3", "-m", "poetry", "run", "streamlit", "run", "app/app.py", "--server.fileWatcherType", "none", "--browser.gatherUsageStats", "false", "--server.enableXsrfProtection", "false", "--server.address", "0.0.0.0"]

@@ -1,32 +1,23 @@
-version: "3.9"
 services:
-  streamlit:
-    container_name: streamlit
+  app:
+    container_name: arxivchatguru-app
     build:
-      context: ./
-    volumes:
-      - ./app:/app
+      context: .
     ports:
       - "8501:8501"
     env_file:
       - .env
+    restart: unless-stopped
     depends_on:
-      redis:
-        condition: service_healthy
+      - redis
   redis:
-    image: redis/redis-stack:latest
+    image: redis:alpine
+    container_name: arxivchatguru-redis
     ports:
       - "6379:6379"
-    env_file:
-      - .env
     volumes:
-        - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "-h", "localhost", "-p", "6379", "ping"]
-      interval: 2s
-      timeout: 1m30s
-      retries: 5
-      start_period: 5s
+      - redis_data:/data
+    restart: unless-stopped
 
 volumes:
   redis_data:
