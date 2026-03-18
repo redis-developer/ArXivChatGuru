@@ -61,3 +61,10 @@ def test_build_stats_rows_preserves_known_metrics():
 
     assert {"Stat": "num_docs", "Value": 5} in rows
     assert {"Stat": "vector_index_sz_mb", "Value": 1.25} in rows
+
+
+def test_build_stats_rows_normalizes_mixed_value_types_for_streamlit():
+    rows = build_stats_rows({"num_docs": 5, "num_records": "1"})
+
+    assert {"Stat": "num_docs", "Value": "5"} in rows
+    assert {"Stat": "num_records", "Value": "1"} in rows

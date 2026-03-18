@@ -45,8 +45,21 @@ def _pairs_to_dict(value: Any) -> dict[str, Any]:
     return result
 
 
+def _normalize_stat_values_for_table(values: list[Any]) -> list[Any]:
+    non_null_values = [value for value in values if value is not None]
+    has_string_values = any(isinstance(value, str) for value in non_null_values)
+    has_numeric_values = any(isinstance(value, int | float) for value in non_null_values)
+    has_other_values = any(not isinstance(value, str | int | float) for value in non_null_values)
+
+    if has_other_values or (has_string_values and has_numeric_values):
+        return [None if value is None else str(value) for value in values]
+
+    return values
+
+
 def build_stats_rows(index_info: dict[str, Any]) -> list[dict[str, Any]]:
-    return [{"Stat": key, "Value": index_info.get(key)} for key in STATS_KEYS]
+    values = _normalize_stat_values_for_table([index_info.get(key) for key in STATS_KEYS])
+    return [{"Stat": key, "Value": value} for key, value in zip(STATS_KEYS, values, strict=True)]
 
 
 def build_index_rows(index_info: dict[str, Any]) -> list[dict[str, Any]]:
